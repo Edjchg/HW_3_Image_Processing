@@ -1,0 +1,1 @@
+clc;clear all;pkg load imageA = imread("fondo_verde.jpg");B = imread("playa.jpg");tol = 0.33333333333333333333;C = poner_fondo(A,B, tol);imshow(C)
