@@ -16,23 +16,21 @@ imshow(fondo_deseado)
 title("Fondo deseado")
 
 %Poner el borde a la imagen y componerla:
-tol=0.333;
+tol=0.3333;
 imagen_compuesta = poner_fondo(imagen, fondo_deseado, tol);
 subplot(2,3,3)
 imshow(imagen_compuesta)
 title("Imagen compuesta")
 
 
-%Extrayendo bordes de la silueta:
-
 %Extraer la silueta del fondo verde:
-silueta = extraer_verde(imagen, 0.3);
+silueta = extraer_verde(imagen, tol);
 
 %Hacer a la silueta totalmente binaria:
 silueta_binaria = binaria(silueta(:,:,2));
 
 %Creando elemento estructurado:
-C=ones(3,3);
+C=ones(3);
 
 %Borde interno: A-(A erosion B)
 erosion=imerode(silueta_binaria,C);
@@ -40,7 +38,7 @@ borde_silueta=silueta_binaria&~erosion;
 
 
 %Ensanchar bordes:
-D=ones(3)
+D=ones(3);
 bordes_anchos = imdilate(borde_silueta, D);
 subplot(2,3,4)
 imshow(bordes_anchos)

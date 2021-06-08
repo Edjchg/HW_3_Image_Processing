@@ -1,17 +1,18 @@
 function imagen_restaurada = croma(imagen_verde, imagen_fondo, tol)
   [m n k] = size(imagen_verde);
+  %Uniendo la imagen con fondo verde y el fondo deseado.
   imagen_compuesta=poner_fondo(imagen_verde, imagen_fondo, tol);
   %Extraer la silueta del fondo verde:
   silueta = extraer_verde(imagen_verde, 0.3);
   %Hacer a la silueta totalmente binaria:
   silueta_binaria = binaria(silueta(:,:,2));
   %Creando elemento estructurado:
-  C=ones(3,3);
+  C=ones(3);
   %Borde interno: A-(A erosion B)
   erosion=imerode(silueta_binaria,C);
   borde_silueta=silueta_binaria&~erosion;
   %Ensanchar bordes:
-  D=ones(5,5);
+  D=ones(3);
   bordes_anchos = imdilate(borde_silueta, D);
   
   
@@ -28,5 +29,4 @@ function imagen_restaurada = croma(imagen_verde, imagen_fondo, tol)
   imagen_restaurada(:,:,1)=inpaint(imagen_compuesta(:,:,1), bordes_anchos, M, 200);
   imagen_restaurada(:,:,2)=inpaint(imagen_compuesta(:,:,2), bordes_anchos, M, 200);
   imagen_restaurada(:,:,3)=inpaint(imagen_compuesta(:,:,3), bordes_anchos, M, 200);
-
 endfunction
