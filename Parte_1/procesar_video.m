@@ -18,10 +18,10 @@ function procesar_video(video_verde, video_fondo, video_resultado, tol)
   frame_k_vb=zeros(m,n,3);
   resultado_croma=zeros(m,n,3);
   for k=1:frames
-    frame_k_vo=readFrame(video_objeto);
-    frame_k_vb=readFrame(video_back);
-    resultado_croma=croma(frame_k_vo, frame_k_vb, tol);
-    writeVideo(video_result, resultado_croma);
+    tic
+    resultado_croma=croma(imresize(readFrame(video_objeto), 0.5), imresize(readFrame(video_back), 0.5), tol);
+    writeVideo(video_result, im2uint8(resultado_croma));
+    t1=toc
     k
   endfor
   close(video_objeto);close(video_back);close(video_result);
