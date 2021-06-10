@@ -16,15 +16,15 @@ imshow(fondo_deseado)
 title("Fondo deseado")
 
 %Poner el borde a la imagen y componerla:
-tol=0.3333;
-imagen_compuesta = poner_fondo(imagen, fondo_deseado, tol);
+tol = 0.34;
+imagen_compuesta = poner_fondo(imagen, fondo_deseado, tol, 0);
 subplot(2,3,3)
 imshow(imagen_compuesta)
 title("Imagen compuesta")
 
 
 %Extraer la silueta del fondo verde:
-silueta = extraer_verde(imagen, tol);
+silueta = poner_fondo(imagen, fondo_deseado, tol, 1);
 
 %Hacer a la silueta totalmente binaria:
 silueta_binaria = binaria(silueta(:,:,2));

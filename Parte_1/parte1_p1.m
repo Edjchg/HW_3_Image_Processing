@@ -1,4 +1,4 @@
-clc;clear all;
+clc;clear all;close all
 pkg load image
 
 %Leyendo la imagen con fondo verde:
@@ -14,8 +14,8 @@ imshow(B)
 title("Imagen de fondo")
 
 %Combinando la imagen con fondo verde y el fondo deseado:
-tol = 0.3333;
-C = poner_fondo(A,B, tol);
+tol = 0.34;
+C = poner_fondo(A,B, tol,0);
 subplot(1,3,3)
 imshow(C)
 title("Imagen compuesta")
