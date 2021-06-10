@@ -1,4 +1,15 @@
 function C = poner_fondo(A,B,tol, solo_verde)
+  % Esta funcion toma una imagen con fondo verde y el fondo deseado y las 
+  % compone en una sola imagen. Esto anterior si el parametro solo_verde está en
+  % 0. Si este parametro se encuentra en 1, entonces solo extrae el color verde
+  % de la imagen.
+  % Entradas: - Imagen A con fondo verde.
+  %           - Imagen B que es el fondo deseado.
+  %           - Una toleracia tol para la aceptación del rango de verdes.
+  %           - Un boolean solo_verde que indica la operacion a realizar por la
+  %             función.
+  %Salidas: - La imagen C, ya sea ambas imagenes A y B compuestas, o solo
+  %           la parte verde de la imagen A.
   [m n z] = size(B);
   C=zeros(m,n,z);
   a=zeros(m,n,z);

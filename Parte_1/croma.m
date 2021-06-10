@@ -1,4 +1,10 @@
 function imagen_restaurada = croma(imagen_verde, imagen_fondo, tol)
+  % Esta función aplica todos los pasos necesarios para
+  % componer una imagen con fondo verde y el fondo deseado.
+  % Entradas: - imagen_verde: es la imagen con el fondo verde.
+  %           - imagen_fondo: es el fondo deseado.
+  %           - tol: una tolerancia para el rango de verdes.
+  % Salidas: - La imagen restaurada y compuesta.
   [m n k] = size(imagen_verde);
   %Uniendo la imagen con fondo verde y el fondo deseado.
   imagen_compuesta=poner_fondo(imagen_verde, imagen_fondo, tol,0);
