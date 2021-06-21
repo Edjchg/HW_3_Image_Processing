@@ -31,15 +31,35 @@ def im2uint8(im):
     return temp.astype(np.uint8) 
 
 # Definicion de la funcion binaria en python
+"""
+Toma una imagen en blanco y negro y retorna una imagen de valores de 0 y 1
+Entradas: 
+  - una imagen en blanco y negro.
+Salidas: 
+  - una imagen binaria con valores de 0 o 1
+"""
 def binaria(X):
-    # Toma una imagen en blanco y negro y retorna una imagen de valores de 0 y 1
-    # Entradas: - una imagen en blanco y negro.
-    # Salidas: - una imagen binaria con valores de 0 o 1
     (m,n) = X.shape
     Y = np.zeros((m,n)).astype(np.bool8) # se utiliza el tipo booleano de 8 bits
     Y[X >= 0.5] = 1
     Y[X < 0.5] = 0
     return Y
+
+"""
+Esta función toma una imagen y aplica sobre esta la convolución con
+el kernel tipico del filtro gaussiano.
+Entradas: 
+  - imagen_str: la ruta de la imagen deseada.
+Salidas: 
+  - la imagen con la convolución aplicada.
+Leyendo la imagen.
+"""
+def gauss(A):
+    # Calculando el kernel tipico del filtro de Gauss.
+    B = (1/16)*np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]], dtype=A.dtype)
+    # Aplicando la convolución a las matrices de A y B.
+    C = nd.convolve(A, B, mode='constant', cval=1.0).astype(A.dtype)
+    return C
 
 """
 Extraccion de la gradiente morfologica de la imagen
@@ -89,13 +109,18 @@ def hough(B,m,n,p):
 
 ## Lectura imagen 1
 I1 = cv.imread('imagen1.png',0) # lectura de imagen de entrada
-I1 = im2double(I1)
+I1o = im2double(I1)
+I1 = gauss(I1o)
 ## Lectura imagen 2
 I2 = cv.imread('imagen2.png',0) # lectura de imagen de entrada
-I2 = im2double(I2)
+I2o = im2double(I2)
+I2 = I2o
+# I2 = gauss(I2o)
 ## Lectura imagen 3
 I3 = cv.imread('imagen3.png',0) # lectura de imagen de entrada
-I3 = im2double(I3)
+I3o = im2double(I3)
+I3 = I3o
+# I3 = gauss(I3o)
 
 ## Extraccion de bordes de la imagen
 
@@ -107,21 +132,21 @@ I3 = im2double(I3)
 # B = np.sqrt(np.add(np.power(Cx,2),np.power(Cy,2)))
 
 ## Imagen 1
-B1 = cv.Canny(im2uint8(I1),300,400, apertureSize=3) # aplicacion del detector de bordes Canny
+B1 = cv.Canny(im2uint8(I1),150,250, apertureSize=3) # aplicacion del detector de bordes Canny
 # La deteccion de bordes con Canny ya aplica la limpieza con el filtro Gauss
 B1 = im2double(B1)
 # Convertirla a Binaria
 B1 = binaria(B1) # pasar a binario a los bordes B1
 
 ## Imagen 2
-B2 = cv.Canny(im2uint8(I2),300,400, apertureSize=3) # aplicacion del detector de bordes Canny
+B2 = cv.Canny(im2uint8(I2),50,150, apertureSize=3) # aplicacion del detector de bordes Canny
 # La deteccion de bordes con Canny ya aplica la limpieza con el filtro Gauss
 B2 = im2double(B2)
 # Convertirla a Binaria
 B2 = binaria(B2) # pasar a binario a los bordes B2
 
 ## Imagen 3
-B3 = cv.Canny(im2uint8(I3),300,400, apertureSize=3) # aplicacion del detector de bordes Canny
+B3 = cv.Canny(im2uint8(I3),150,250, apertureSize=3) # aplicacion del detector de bordes Canny
 # La deteccion de bordes con Canny ya aplica la limpieza con el filtro Gauss
 B3 = im2double(B3)
 # Convertirla a Binaria
@@ -170,17 +195,17 @@ P3 = hough(B3,m3,n3,p3)
 ## Imagen 1
 (X1,Y1,R1) = np.where(P1 > 0.45)
 ## Imagen 2
-(X2,Y2,R2) = np.where(P2 > 0.45)
+(X2,Y2,R2) = np.where(P2 > 0.50)
 ## Imagen 3
-(X3,Y3,R3) = np.where(P3 > 0.45)
+(X3,Y3,R3) = np.where(P3 > 0.53)
 
 ## Creando la imagen de salida en ceros
 ## Imagen 1
-out_img1 = np.zeros((M1,N1), dtype=np.uint8)
+out_img1 = np.zeros((M1,N1,3), dtype=np.uint8)
 ## Imagen 2
-out_img2 = np.zeros((M2,N2), dtype=np.uint8)
+out_img2 = np.zeros((M2,N2,3), dtype=np.uint8)
 ## Imagen 3
-out_img3 = np.zeros((M3,N3), dtype=np.uint8)
+out_img3 = np.zeros((M3,N3,3), dtype=np.uint8)
 
 
 ## Creacion de circulos detectados
@@ -193,7 +218,7 @@ for i in range(len(X1)):
     radio = R1[i]
     # Using cv2.circle() method
     # Draw a circle with blue line borders of thickness of 2 px
-    out_img1 = cv.circle(out_img1, cc, radio, 255, 1)
+    out_img1 = cv.circle(out_img1, cc, radio, (255,255,255), 1)
     # out_img[X[i],Y[i]] = 255
 
 ## Imagen 2
@@ -204,7 +229,7 @@ for i in range(len(X2)):
     radio = R2[i]
     # Using cv2.circle() method
     # Draw a circle with blue line borders of thickness of 2 px
-    out_img2 = cv.circle(out_img2, cc, radio, 255, 1)
+    out_img2 = cv.circle(out_img2, cc, radio, (255,255,255), 1)
     # out_img[X[i],Y[i]] = 255
  
 ## Imagen 3
@@ -215,14 +240,14 @@ for i in range(len(X3)):
     radio = R3[i]
     # Using cv2.circle() method
     # Draw a circle with blue line borders of thickness of 2 px
-    out_img3 = cv.circle(out_img3, cc, radio, 255, 1)
+    out_img3 = cv.circle(out_img3, cc, radio, (255,255,255), 1)
     # out_img[X[i],Y[i]] = 255
 
 ## Graficacion
 
 ## Imagen 1
 plt.subplot(331) # posicion de la cuadro
-plt.imshow(I1, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
+plt.imshow(I1o, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
 plt.title('Imagen Original 1')
 # Se vacian los ejes
 plt.xticks([])
@@ -244,7 +269,7 @@ plt.yticks([])
 ## Imagen 2
 
 plt.subplot(334) # posicion de la cuadro
-plt.imshow(I2, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
+plt.imshow(I2o, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
 plt.title('Imagen Original 2')
 # Se vacian los ejes
 plt.xticks([])
@@ -266,7 +291,7 @@ plt.yticks([])
 ## Imagen 3
 
 plt.subplot(337) # posicion de la cuadro
-plt.imshow(I3, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
+plt.imshow(I3o, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
 plt.title('Imagen Original 3')
 # Se vacian los ejes
 plt.xticks([])
@@ -287,9 +312,9 @@ plt.yticks([])
 
 
 ## Guardar imagen
-plt.imsave('resultado_imagen1.png', out_img1)
-plt.imsave('resultado_imagen2.png', out_img2)
-plt.imsave('resultado_imagen3.png', out_img3)
+plt.imsave('resultado_imagen1.png', out_img1, cmap='gray', vmin = 0, vmax = 255)
+plt.imsave('resultado_imagen2.png', out_img2, cmap='gray', vmin = 0, vmax = 255)
+plt.imsave('resultado_imagen3.png', out_img3, cmap='gray', vmin = 0, vmax = 255)
 
 # Muestra la ventana con un bloqueo
 plt.show()
