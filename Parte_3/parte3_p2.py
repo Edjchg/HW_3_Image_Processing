@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator
 import cv2 as cv
+from scipy.signal import convolve2d
+
+# Funcion de convolucion de dos dimensines para Python
+def conv2(x, y, mode='same'):
+    return np.rot90(convolve2d(np.rot90(x, 2), np.rot90(y, 2), mode=mode), 2)
 
 # Importacion de bibliotecas matematica, manejo imagenes, graficado
 
@@ -36,18 +41,38 @@ def binaria(X):
     Y[X < 0.5] = 0
     return Y
 
-# """
-# Transformada de Hough para la deteccion de 
-# rectas en una imagen.
-# Entrada:
-#     nombre_imagen:Imagen a procesar
-# #Salida:
-#     Grafico.
-# """
+"""
+Extraccion de la gradiente morfologica de la imagen
+  Realiza la operacion: (A dilatacion B) - (A erosion B)
+  
+Recibe: 
+  - A: imagen binaria a extraer el borde
+  - B: elemento estructurado en el cual realizar la extraccion
+Retorna: 
+  - E: imagen binaria con gradiente morfologica
+"""
+def grad_morf(A, B):
+    # Aplicacion de la dilatacion binaria entre A y B
+    C = nd.binary_dilation(A, B).astype(A.dtype)
+    # Aplicacion de la erosion binaria entre A y B
+    D = nd.binary_erosion(A, B).astype(A.dtype)
+    # Primero se invierte logicamente D y luego se aplica la operacion and logico 
+    E = np.logical_and(C, np.invert(D))
+
+    return E
+
+"""
+Transformada de Hough para la deteccion de 
+rectas en una imagen.
+Entrada:
+  - nombre_imagen:Imagen a procesar
+Salida:
+  - Grafico.
+"""
 def hough(B,m,n,p):
     P = np.zeros((m,n,p))
 
-    (xi,yi) = np.where(B == 1)
+    (xi,yi) = np.where(B >= 0.5)
 
     for i in range(len(xi)):
         for a in range(1,m):
@@ -58,60 +83,213 @@ def hough(B,m,n,p):
                 if r != 0:
                     v_aux = 1/(2*np.pi*r)
                     r_ind = np.ceil(r).astype(int)
-                    P[a-1,b-1,r_ind-1] += v_aux
+                    P[a,b,r_ind] += v_aux
 
     return P
 
-I = cv.imread('imagen1.png',0) # lectura de imagen de entrada
-B = cv.Canny(I,350,400) # aplicacion del detector de bordes Canny
+## Lectura imagen 1
+I1 = cv.imread('imagen1.png',0) # lectura de imagen de entrada
+I1 = im2double(I1)
+## Lectura imagen 2
+I2 = cv.imread('imagen2.png',0) # lectura de imagen de entrada
+I2 = im2double(I2)
+## Lectura imagen 3
+I3 = cv.imread('imagen3.png',0) # lectura de imagen de entrada
+I3 = im2double(I3)
+
+## Extraccion de bordes de la imagen
+
+# Para obtener los bordes de la imagen, utilizaremos el operador de Sobel
+# Bx = np.matrix([[-1,0,1],[-2,0,2],[-1,0,1]])
+# By = np.matrix([[-1,-2,-1],[0,0,0],[1,2,1]])
+# Cx = conv2(I,Bx,'same')
+# Cy = conv2(I,By,'same')
+# B = np.sqrt(np.add(np.power(Cx,2),np.power(Cy,2)))
+
+## Imagen 1
+B1 = cv.Canny(im2uint8(I1),300,400, apertureSize=3) # aplicacion del detector de bordes Canny
 # La deteccion de bordes con Canny ya aplica la limpieza con el filtro Gauss
-B = binaria(im2double(B)) # pasar a binario a los bordes B
-(M,N) = I.shape # extraccion de dimensiones
+B1 = im2double(B1)
+# Convertirla a Binaria
+B1 = binaria(B1) # pasar a binario a los bordes B1
+
+## Imagen 2
+B2 = cv.Canny(im2uint8(I2),300,400, apertureSize=3) # aplicacion del detector de bordes Canny
+# La deteccion de bordes con Canny ya aplica la limpieza con el filtro Gauss
+B2 = im2double(B2)
+# Convertirla a Binaria
+B2 = binaria(B2) # pasar a binario a los bordes B2
+
+## Imagen 3
+B3 = cv.Canny(im2uint8(I3),300,400, apertureSize=3) # aplicacion del detector de bordes Canny
+# La deteccion de bordes con Canny ya aplica la limpieza con el filtro Gauss
+B3 = im2double(B3)
+# Convertirla a Binaria
+B3 = binaria(B3) # pasar a binario a los bordes B
+
+## Limpieza
+
+# Creacion del elemento estructurado
+# EE = np.matrix([[0,1,0],[1,1,1],[0,1,0]], B.dtype)
+# EE = np.ones((2,2), B1.dtype)
+# B1 = nd.binary_erosion(B1, EE).astype(B1.dtype)
+
+## Parametros del algoritmo
+
+## Imagen 1
+(M1,N1) = I1.shape # extraccion de dimensiones
 # Asignacion de parametros segun el algoritmo de deteccion de circulos
-m = M
-n = N
-p = np.ceil(np.sqrt([M**2 + N**2])).astype(int)[0]
+m1 = M1
+n1 = N1
+p1 = np.ceil(np.sqrt([M1**2 + N1**2])).astype(int)[0]
 
-# Aplicacion del algoritmo de deteccion de circulos
-P = hough(B,m,n,p)
+## Imagen 2
+(M2,N2) = I2.shape # extraccion de dimensiones
+# Asignacion de parametros segun el algoritmo de deteccion de circulos
+m2 = M2
+n2 = N2
+p2 = np.ceil(np.sqrt([M2**2 + N2**2])).astype(int)[0]
 
-print(np.where(P > 0.55))
+## Imagen 3
+(M3,N3) = I3.shape # extraccion de dimensiones
+# Asignacion de parametros segun el algoritmo de deteccion de circulos
+m3 = M3
+n3 = N3
+p3 = np.ceil(np.sqrt([M3**2 + N3**2])).astype(int)[0]
 
-# fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+## Aplicacion del algoritmo de deteccion de circulos
 
-# # Make data.
-# X = np.arange(0, m, 1)
-# Y = np.arange(0, n, 1)
-# X, Y = np.meshgrid(X, Y)
-# R = np.sqrt(X**2 + Y**2)
-# Z = np.sin(R)
+## Imagen 1
+P1 = hough(B1,m1,n1,p1)
+## Imagen 2
+P2 = hough(B2,m2,n2,p2)
+## Imagen 3
+P3 = hough(B3,m3,n3,p3)
 
-# Plot the surface.
-# surf = ax.plot_surface(X, Y, P, cmap=cm.coolwarm,
-#                        linewidth=0, antialiased=False)
+## Especificacion del limite para tomar en cuenta
+## Imagen 1
+(X1,Y1,R1) = np.where(P1 > 0.45)
+## Imagen 2
+(X2,Y2,R2) = np.where(P2 > 0.45)
+## Imagen 3
+(X3,Y3,R3) = np.where(P3 > 0.45)
 
-# # Customize the z axis.
-# ax.set_zlim(-1.01, 1.01)
-# ax.zaxis.set_major_locator(LinearLocator(10))
-# # A StrMethodFormatter is used automatically
-# ax.zaxis.set_major_formatter('{x:.02f}')
+## Creando la imagen de salida en ceros
+## Imagen 1
+out_img1 = np.zeros((M1,N1), dtype=np.uint8)
+## Imagen 2
+out_img2 = np.zeros((M2,N2), dtype=np.uint8)
+## Imagen 3
+out_img3 = np.zeros((M3,N3), dtype=np.uint8)
 
-# Add a color bar which maps values to colors.
-# fig.colorbar(surf, shrink=0.5, aspect=5)
 
-# plt.show()
+## Creacion de circulos detectados
 
-plt.subplot(121) # posicion de la cuadro
-plt.imshow(I,cmap = 'gray')
-plt.title('Imagen Original')
+## Imagen 1
+for i in range(len(X1)):
+    # Coordenadas centro
+    cc = (Y1[i],X1[i])
+    # Radio del
+    radio = R1[i]
+    # Using cv2.circle() method
+    # Draw a circle with blue line borders of thickness of 2 px
+    out_img1 = cv.circle(out_img1, cc, radio, 255, 1)
+    # out_img[X[i],Y[i]] = 255
+
+## Imagen 2
+for i in range(len(X2)):
+    # Coordenadas centro
+    cc = (Y2[i],X2[i])
+    # Radio del
+    radio = R2[i]
+    # Using cv2.circle() method
+    # Draw a circle with blue line borders of thickness of 2 px
+    out_img2 = cv.circle(out_img2, cc, radio, 255, 1)
+    # out_img[X[i],Y[i]] = 255
+ 
+## Imagen 3
+for i in range(len(X3)):
+    # Coordenadas centro
+    cc = (Y3[i],X3[i])
+    # Radio del
+    radio = R3[i]
+    # Using cv2.circle() method
+    # Draw a circle with blue line borders of thickness of 2 px
+    out_img3 = cv.circle(out_img3, cc, radio, 255, 1)
+    # out_img[X[i],Y[i]] = 255
+
+## Graficacion
+
+## Imagen 1
+plt.subplot(331) # posicion de la cuadro
+plt.imshow(I1, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
+plt.title('Imagen Original 1')
 # Se vacian los ejes
 plt.xticks([])
 plt.yticks([])
-plt.subplot(122)
-plt.imshow(im2uint8(B),cmap = 'gray')
-plt.title('Deteccion Bordes Canny')
+
+plt.subplot(332) # posicion de la cuadro
+plt.imshow(B1, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
+plt.title('Deteccion Bordes 1')
 # Se vacian los ejes
 plt.xticks([])
 plt.yticks([])
+
+plt.subplot(333) # posicion de la cuadro
+plt.title("Extraccion Circulos Hough 1") 
+plt.imshow(out_img1, cmap='gray', vmin = 0, vmax = 255, interpolation='none')
+plt.xticks([])
+plt.yticks([])
+
+## Imagen 2
+
+plt.subplot(334) # posicion de la cuadro
+plt.imshow(I2, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
+plt.title('Imagen Original 2')
+# Se vacian los ejes
+plt.xticks([])
+plt.yticks([])
+
+plt.subplot(335) # posicion de la cuadro
+plt.imshow(B2, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
+plt.title('Deteccion Bordes 2')
+# Se vacian los ejes
+plt.xticks([])
+plt.yticks([])
+
+plt.subplot(336) # posicion de la cuadro
+plt.title("Extraccion Circulos Hough 2") 
+plt.imshow(out_img2, cmap='gray', vmin = 0, vmax = 255, interpolation='none')
+plt.xticks([])
+plt.yticks([])
+
+## Imagen 3
+
+plt.subplot(337) # posicion de la cuadro
+plt.imshow(I3, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
+plt.title('Imagen Original 3')
+# Se vacian los ejes
+plt.xticks([])
+plt.yticks([])
+
+plt.subplot(338) # posicion de la cuadro
+plt.imshow(B3, cmap = 'gray', vmin = 0, vmax = 1, interpolation='none')
+plt.title('Deteccion Bordes 3')
+# Se vacian los ejes
+plt.xticks([])
+plt.yticks([])
+
+plt.subplot(339) # posicion de la cuadro
+plt.title("Extraccion Circulos Hough 3") 
+plt.imshow(out_img3, cmap='gray', vmin = 0, vmax = 255, interpolation='none')
+plt.xticks([])
+plt.yticks([])
+
+
+## Guardar imagen
+plt.imsave('resultado_imagen1.png', out_img1)
+plt.imsave('resultado_imagen2.png', out_img2)
+plt.imsave('resultado_imagen3.png', out_img3)
+
 # Muestra la ventana con un bloqueo
 plt.show()
